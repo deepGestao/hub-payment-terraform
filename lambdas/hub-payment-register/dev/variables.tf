@@ -56,3 +56,8 @@ variable "env" {
     MERCADO_PAGO_CLIENT_SECRET = ""
   }
 }
+
+variable "api_name" {
+  description = "The API name"
+  default = "hub-payment"
+}

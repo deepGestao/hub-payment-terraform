@@ -91,3 +91,49 @@ resource "aws_iam_role_policy_attachment" "lambda_policy" {
   role       = aws_iam_role.lambda_exec.name
   policy_arn = aws_iam_policy.lambda_custom_policy.arn
 }
+
+data "aws_api_gateway_rest_api" "api" {
+  name = "${var.api_name}-${var.aws_env}"
+}
+
+resource "aws_api_gateway_resource" "resource" {
+  rest_api_id = data.aws_api_gateway_rest_api.api.id
+  parent_id = data.aws_api_gateway_rest_api.api.root_resource_id
+  path_part = "register"
+}
+
+resource "aws_api_gateway_method" "method" {
+  rest_api_id   = data.aws_api_gateway_rest_api.api.id
+  resource_id   = aws_api_gateway_resource.resource.id
+  http_method   = "POST"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "integration" {
+  rest_api_id             = data.aws_api_gateway_rest_api.api.id
+  resource_id             = aws_api_gateway_resource.resource.id
+  http_method             = aws_api_gateway_method.method.http_method
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = aws_lambda_function.my_lambda.invoke_arn
+}
+
+resource "aws_api_gateway_deployment" "deployment" {
+  rest_api_id = data.aws_api_gateway_rest_api.api.id
+  triggers = {
+    redeployment = sha1(jsonencode([
+        aws_api_gateway_resource.resource.id,
+        aws_api_gateway_method.method.id,
+        aws_api_gateway_integration.integration.id,
+    ]))
+  }
+}
+
+resource "aws_lambda_permission" "apigw_lambda" {
+  statement_id  = "AllowExecutionFromAPIGateway"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.my_lambda.function_name
+  principal     = "apigateway.amazonaws.com"
+
+  source_arn = "arn:aws:execute-api:${var.aws_region}:${var.aws_account}:${data.aws_api_gateway_rest_api.api.id}/*/${aws_api_gateway_method.method.http_method}${aws_api_gateway_resource.resource.path}"
+}
