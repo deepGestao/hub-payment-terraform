@@ -27,3 +27,13 @@ variable "hash_key_type" {
   description = "The type of hash key"
   default     = "S"
 }
+
+variable "global_secondary_index_name" {
+  description = "The control var to create users"
+  default = "email"
+}
+
+variable "global_secondary_index_type" {
+  description = "The control var to create users"
+  default = "S"
+}

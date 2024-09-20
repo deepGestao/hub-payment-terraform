@@ -80,8 +80,12 @@ resource "aws_iam_policy" "lambda_custom_policy" {
         Effect = "Allow"
         Action = [
           "dynamodb:PutItem",
+          "dynamodb:Query",
         ]
-        Resource = "arn:aws:dynamodb:${var.aws_region}:${var.aws_account}:table/hub-payment-customers-${var.aws_env}"
+        Resource = [
+          "arn:aws:dynamodb:${var.aws_region}:${var.aws_account}:table/hub-payment-customers-${var.aws_env}",
+          "arn:aws:dynamodb:${var.aws_region}:${var.aws_account}:table/hub-payment-customers-${var.aws_env}/*",
+        ]
       }
     ]
   })
