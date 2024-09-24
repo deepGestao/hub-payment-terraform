@@ -54,3 +54,8 @@ variable "env" {
     
   }
 }
+
+variable "queue_name" {
+  description = "The queue name"
+  default     = "hub-payment-orders-to-process"
+}

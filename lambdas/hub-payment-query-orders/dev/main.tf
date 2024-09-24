@@ -23,7 +23,8 @@ resource "aws_lambda_function" "my_lambda" {
 
   environment {
     variables = {
-      AWS_ENV = var.aws_env
+      AWS_ENV     = var.aws_env
+      AWS_ACCOUNT = var.aws_account
     }
   }
 
@@ -78,6 +79,17 @@ resource "aws_iam_policy" "lambda_custom_policy" {
         ]
         Resource = [
           "arn:aws:dynamodb:${var.aws_region}:${var.aws_account}:table/hub-payment-scheduler-queue-${var.aws_env}"
+        ]
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "sqs:SendMessage",
+          "sqs:GetQueueUrl",
+          "sqs:GetQueueAttributes"
+        ]
+        Resource = [
+          "arn:aws:sqs:${var.aws_region}:${var.aws_account}:${var.queue_name}-${var.aws_env}"
         ]
       }
     ]
