@@ -54,3 +54,8 @@ variable "env" {
     
   }
 }
+
+variable "api_name" {
+  description = "The API name"
+  default     = "hub-payment"
+}
