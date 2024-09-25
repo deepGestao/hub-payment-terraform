@@ -98,6 +98,11 @@ resource "aws_iam_policy" "lambda_custom_policy" {
         ]
       },
       {
+        "Effect" : "Allow",
+        "Action" : "events:PutEvents",
+        "Resource" : "arn:aws:events:${var.aws_region}:${var.aws_account}:event-bus/default"
+      },
+      {
         Effect = "Allow"
         Action = [
           "sqs:ReceiveMessage",
