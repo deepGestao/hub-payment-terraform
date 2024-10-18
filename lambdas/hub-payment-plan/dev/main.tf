@@ -23,7 +23,12 @@ resource "aws_lambda_function" "my_lambda" {
 
   environment {
     variables = {
-      AWS_ENV = var.aws_env
+      MERCADO_PAGO_PLAN          = "https://api.mercadopago.com/preapproval_plan"
+      MERCADO_PAGO_OAUTH         = "https://api.mercadopago.com/oauth/token"
+      MERCADO_PAGO_CLIENT_ID     = "${var.env["MERCADO_PAGO_CLIENT_ID"]}"
+      MERCADO_PAGO_CLIENT_SECRET = "${var.env["MERCADO_PAGO_CLIENT_SECRET"]}"
+      AWS_ENV                    = var.aws_env
+      MERCADO_PAGO_ACCESS_TOKEN  = "${var.env["MERCADO_PAGO_ACCESS_TOKEN"]}"
     }
   }
 

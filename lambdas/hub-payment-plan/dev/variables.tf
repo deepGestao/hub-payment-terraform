@@ -51,7 +51,9 @@ variable "architectures" {
 variable "env" {
   description = "Enviroment of lambda"
   default = {
-
+    MERCADO_PAGO_CLIENT_ID     = ""
+    MERCADO_PAGO_CLIENT_SECRET = ""
+    MERCADO_PAGO_ACCESS_TOKEN  = "APP_USR-912101250944479-072016-15ec85571f74a0a3bc5585a49ad4f625-1908128537"
   }
 }
 
