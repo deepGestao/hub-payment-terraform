@@ -42,7 +42,7 @@ resource "aws_cloudwatch_event_rule" "rule" {
       "${var.api_destination_name}-${var.aws_env}",
       "hub-payment-notification-webhook-${var.aws_env}"
     ],
-    detail-type = ["subscription_preapproval.created"]
+    detail-type = ["subscription_preapproval|created"]
   })
 }
 
