@@ -2,7 +2,7 @@ terraform {
   backend "s3" {
     bucket = "hub-payment-140023362908-terraform"
     region = "us-east-2"
-    key    = "lambdas/hub-payment-subscription/dev"
+    key    = "lambdas/hub-payment-webhook/dev"
   }
 }
 
@@ -23,13 +23,7 @@ resource "aws_lambda_function" "my_lambda" {
 
   environment {
     variables = {
-      MERCADO_PAGO_SUBSCRIPTION  = "https://api.mercadopago.com/preapproval"
-      MERCADO_PAGO_PLAN          = "https://api.mercadopago.com/preapproval_plan"
-      MERCADO_PAGO_OAUTH         = "https://api.mercadopago.com/oauth/token"
-      MERCADO_PAGO_CLIENT_ID     = "${var.env["MERCADO_PAGO_CLIENT_ID"]}"
-      MERCADO_PAGO_CLIENT_SECRET = "${var.env["MERCADO_PAGO_CLIENT_SECRET"]}"
-      AWS_ENV                    = var.aws_env
-      MERCADO_PAGO_ACCESS_TOKEN  = "${var.env["MERCADO_PAGO_ACCESS_TOKEN"]}"
+      AWS_ENV = var.aws_env
     }
   }
 
@@ -82,7 +76,12 @@ resource "aws_iam_policy" "lambda_custom_policy" {
         Action = [
           "dynamodb:PutItem",
         ]
-        Resource = "arn:aws:dynamodb:${var.aws_region}:${var.aws_account}:table/hub-payment-subscriptions-${var.aws_env}"
+        Resource = "arn:aws:dynamodb:${var.aws_region}:${var.aws_account}:table/hub-payment-webhooks-${var.aws_env}"
+      },
+      {
+        "Effect": "Allow",
+        "Action": "events:PutEvents",
+        "Resource": "*"
       }
     ]
   })
@@ -100,14 +99,15 @@ data "aws_api_gateway_rest_api" "api" {
 resource "aws_api_gateway_resource" "resource" {
   rest_api_id = data.aws_api_gateway_rest_api.api.id
   parent_id   = data.aws_api_gateway_rest_api.api.root_resource_id
-  path_part   = "subscription"
+  path_part   = "webhook"
 }
 
 resource "aws_api_gateway_method" "method" {
   rest_api_id   = data.aws_api_gateway_rest_api.api.id
   resource_id   = aws_api_gateway_resource.resource.id
   http_method   = "POST"
-  authorization = "NONE"
+  authorization = "CUSTOM"
+  authorizer_id = "8z8psx"
 }
 
 resource "aws_api_gateway_integration" "integration" {

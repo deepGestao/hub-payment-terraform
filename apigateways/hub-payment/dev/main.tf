@@ -99,3 +99,54 @@ resource "aws_iam_role_policy" "cloudwatch" {
   role   = aws_iam_role.cloudwatch.id
   policy = data.aws_iam_policy_document.cloudwatch.json
 }
+
+data "aws_lambda_function" "lambda_auth" {
+  function_name = "hub-payment-auth-${var.aws_env}"
+}
+
+resource "aws_api_gateway_authorizer" "custom_auth" {
+  name                   = "hub-payment-auth-${var.aws_env}"
+  rest_api_id            = aws_api_gateway_rest_api.api.id
+  authorizer_uri         = data.aws_lambda_function.lambda_auth.invoke_arn
+  authorizer_credentials = aws_iam_role.invocation_role.arn
+  identity_source = "method.request.header.x-signature,method.request.header.x-request-id,method.request.querystring.data.id"
+  type = "REQUEST"
+}
+
+resource "aws_iam_policy" "lambda_invoke_permission" {
+  name        = "InvokeLambdaPermission-${var.aws_env}"
+  description = "Permissão para o API Gateway chamar a função Lambda de autenticação."
+  
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = "lambda:InvokeFunction"
+        Resource = "${data.aws_lambda_function.lambda_auth.arn}"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "attach_lambda_invoke_permission" {
+  role       = aws_iam_role.invocation_role.name
+  policy_arn = aws_iam_policy.lambda_invoke_permission.arn
+}
+
+resource "aws_iam_role" "invocation_role" {
+  name               = "APIGatewayInvokeLambdaRoleCustomAuthorizer-${var.aws_env}"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Principal = {
+          Service = "apigateway.amazonaws.com"
+        }
+        Effect = "Allow"
+        Sid    = ""
+      }
+    ]
+  })
+}
